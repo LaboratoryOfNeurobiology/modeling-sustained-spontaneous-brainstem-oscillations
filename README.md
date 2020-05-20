@@ -14,4 +14,4 @@ src: contains the most recent up-to-date versions of the simulation scripts for 
 
 solutions: contains pickled solution files representing n-dimensional data for an interval halved simulation.
 
-![Closed boundary in 2 dimensions [EK, gK] for sustained, spontaneous oscillations of an isolated pacemaker cell.](images/pacemaker_cell_func_Nx_15_Ny_20_Nit6.pdf)
+![Closed boundary in 2 dimensions [EK, gK] for sustained, spontaneous oscillations of an isolated pacemaker cell.](images/pacemaker_cell_func_Nx_15_Ny_20_Nit_6.pdf)
