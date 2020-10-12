@@ -80,51 +80,70 @@ Substitute in the values in this call to mpirun in the bash file:
   `mpirun -n {#cores} python sim_network_split.py $SLURM_ARRAY_TASK_ID {iteration#} $SLURM_ARRAY_JOB_ID`
   
 Save and exit with:
-  
   `(esc) + :wq`
   
-call:
-  
-  `sbatch step3.bash`
-  
+`sbatch step3.bash`  
 
 This will be the longest set of jobs you've run thus far. You will have to check 
   `squeue -u cluster_username`
 until all jobs have completed.
+
 Then retrieve the time signature saved from step_2.bash's output file.
-  `vi step4.bash`
-Fill in:
+
+`vi step4.bash`
+
+replace:
   `python aggregate_results.py {time_sig_step_2} {iteration} {num_splits}`
 save
-call:
-  `sbatch step4.bash`
+
+`sbatch step4.bash`
+
 wait for the job to finish.
 
-call:
-  `vi step5.bash`
-Fill in:
+`vi step5.bash`
+  
+replace:
   `python generate_new_it.py {time_sig} {iteration}`
 save
 
 ###### Running successive iterations:
 Retrieve time signature and the number of new points generated from previous call to step5.bash.
+
 `vi step2.bash`
+
 re-calculate num_splits with new number of points.
 replace:
 `python Split_iteration.py {time_sig} {iteration} {num_splits}`
-call:
+
 `sbatch step2.bash`
+
 wait for the job to finish.
-call: 
+
 `sbatch step3.bash`
+
 retrieve time signature from step2
 wait for step3 to finish
+
 `vi step4.bash`
+
 replace:
 `python aggregate_results.py {time_sig_step_2} {iteration} {num_splits}`
-save file
+save
 
+`sbatch step4.bash`
 
+Wait for job to finish.
+Retrieve time signature from previous job.
+
+`vi step5.bash`
+
+replace:
+`python generate_new_it.py {time_sig} {iteration}`
+save
+
+`sbatch step5.bash`
+
+Proceed back to step2 and repeat the step cycle until you have a final resolution of points fine enough. 
 
 ###### Running surface following:
 
