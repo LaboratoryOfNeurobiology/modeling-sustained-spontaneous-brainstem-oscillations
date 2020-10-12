@@ -11,31 +11,31 @@ Follow Discovery's Documentation for getting acquainted with the different types
 
 ## Start to Finish
 ###### Clone this repository locally:
-cd ~/Directory_where_you_want_to_store_the_code
-git clone git@github.com:QuantumAlmonds/PacemakerNucleus.git
+`cd ~/Directory_where_you_want_to_store_the_code`
+`git clone git@github.com:QuantumAlmonds/PacemakerNucleus.git`
 
 Once this command finishes, you will have a copy of the project saved locally to your directory. 
 
 ###### Setup a working directory on the cluster:
-ssh username@login.discovery.neu.edu
+`ssh username@login.discovery.neu.edu`
 enter password
-cd /scratch/cluster_username
-mkdir N_Dimensional_Simulations
-exit
+`cd /scratch/cluster_username`
+`mkdir N_Dimensional_Simulations`
+`exit`
 
 ###### Transfer the project from the local directory to the remote directory:
-scp Directory_where_you_want_to_store_the_code/PacemakerNucleus cluster_username@login.discovery.neu.edu:/scratch/cluster_username/N_Dimensional_Simulations
+`scp Directory_where_you_want_to_store_the_code/PacemakerNucleus cluster_username@login.discovery.neu.edu:/scratch/cluster_username/N_Dimensional_Simulations`
 
 Once this file transfer is complete, we can begin modifying the code on the cluster to match our project specifications. 
 
 ###### Setting the parameter space variables:
 In Initialize_grid.py, ensure the following:
-current_step = 0
-sim_name = "name_of_simulations"
+`current_step = 0`
+`sim_name = "name_of_simulations"`
 
 Indices of sol_range correspond to indices of num_div.
-sol_range = [[0, 1], [0, 1], [0, 1], ...] where the zeros and ones are replaces with the boundaries of the respective parameter ranges. 
-num_div = [X, Y, Z, ...] where X, Y, Z, and successive values represent one fewer than the number of points along each respective range.
+`sol_range = [[0, 1], [0, 1], [0, 1], ...]` where the zeros and ones are replaces with the boundaries of the respective parameter ranges. 
+`num_div = [X, Y, Z, ...]` where X, Y, Z, and successive values represent one fewer than the number of points along each respective range.
 
 ###### Modifying the modelled network:
 In PN_Modeling.py, modify the PacemakerCell and RelayCell classes to match the geometry and biophysics of your cell types.
@@ -45,7 +45,7 @@ Using the NEURON simulation module, design an algorithm to generate the topology
 Each cell in your network contains information about the times of action potentials generated during simulation. Obtain this data via the give_spikes() method in the PacemakerCell and RelayCell classes and use it to design an algorithm that accurately detects the desired behavior. The current aglorithm in place detects sustained, spontaneous oscillations. Replace lines 171-207 with your algorithm and return a positive value if the behavior is present, and -1e-15 if the behavior is not present.
 
 ###### Checking status of jobs:
-squeue -u cluster_username
+`squeue -u cluster_username`
 will give you a list of all of your running jobs. Use this to determine when your jobs have completed. 
  
 ###### Running your first iteration:
@@ -61,38 +61,38 @@ num splits = math.ceiling(num_total_points/((partition_allocation_length(hours)*
 is the equation I used to determine the number of splits for the next step
 
 Once this job completes:
-  vi step2.bash
+  `vi step2.bash`
 and replace the first parameter of the python call with the time signature, replace the second parameter with 0(for the first iteration), and the third parameter with the number of splits you've previously calculated. Then save and exit the file with
-  (esc) + :wq
+  `(esc) + :wq`
 call
-  sbatch step2.bash
+  `sbatch step2.bash`
   
 Once this job completes via squeue:
   vi step3.bash
 
 Substitute in the values in this call to mpirun in the bash file:
-  mpirun -n {#cores} python sim_network_split.py $SLURM_ARRAY_TASK_ID {iteration#} $SLURM_ARRAY_JOB_ID
+  `mpirun -n {#cores} python sim_network_split.py $SLURM_ARRAY_TASK_ID {iteration#} $SLURM_ARRAY_JOB_ID`
 Save and exit with:
-  (esc) + :wq
+  `(esc) + :wq`
 call:
-  sbatch step3.bash
+  `sbatch step3.bash`
 
 This will be the longest set of jobs you've run thus far. You will have to check 
-  squeue -u cluster_username
+  `squeue -u cluster_username`
 until all jobs have completed.
 Then retrieve the time signature saved from step_2.bash's output file.
-  vi step4.bash
+  `vi step4.bash`
 Fill in:
-  python aggregate_results.py {time_sig_step_2} {iteration} {num_splits}
+  `python aggregate_results.py {time_sig_step_2} {iteration} {num_splits}`
 save
 call:
-  sbatch step4.bash
+  `sbatch step4.bash`
 wait for the job to finish.
 
 call:
-  vi step5.bash
+  `vi step5.bash`
 Fill in:
-  python generate_new_it.py {time_sig} {iteration}
+  `python generate_new_it.py {time_sig} {iteration}`
 save
 
 ###### Running successive iterations:
