@@ -1,17 +1,10 @@
-# PacemakerNucleus
-Code storage for the models and simulations of the pacemaker nucleus and its sub-structures.
+# N-dimensional parameter simulation of a neural network on a super computer.
 
-Files:
-PN_Modeling.py contains all of the model specifications and functions for construction of networks using pacemaker and relay cells.
+Requirements:
+- Access to the Discovery Cluster
+- Proficiency in Python
+- An understanding of the NEURON simulation environment
 
-HalfGap.mod is an NMODL file containing specifications for the rectifying electrical gap junctions connecting cells in the network of the pacemaker nucleus. This must be in the working directory of the simulation script, or in a parent directory, and nrnivmodl must be run prior to simulation of any model employing this mod file.
 
-
-Folders:
-examples: contains example scripts for the use of the IntervalHalving method for parameter selection
-
-src: contains the most recent up-to-date versions of the simulation scripts for models of the pacemaker nucleus and its substructures.
-
-solutions: contains pickled solution files representing n-dimensional data for an interval halved simulation.
-
-![Closed boundary in 2 dimensions [EK, gK] for sustained, spontaneous oscillations of an isolated pacemaker cell.](images/pacemaker_cell_func_Nx_15_Ny_20_Nit_6.pdf)
+Discovery cluster access can be obtained here https://rc-docs.northeastern.edu/en/latest/get_started/get_access.html
+Follow Discovery's Documentation for getting acquainted with the different types of hardware and software that are available for use. Additionally, read the section on how to use Slurm, which is software that allows you to monitor and schedule jobs to be run on the cluster.
