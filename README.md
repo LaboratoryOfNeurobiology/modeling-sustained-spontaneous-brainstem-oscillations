@@ -9,6 +9,9 @@ Our algorithm works in two main steps, the iteration step and the surface follow
 
 Follow Discovery's Documentation for getting acquainted with the different types of hardware and software that are available for use. Additionally, read the section on how to use Slurm, which is software that allows you to monitor and schedule jobs to be run on the cluster.
 
+## Note about the file structure
+The data points for each step are generated and then split across multiple files before being simulated, then aggregated, and then shuttled to generate more points. This is to account for the increasinly growing number of points in each iteration step as not all of the points can be simulated in parallel on one node. The checkpoint files called Iteration files are saved in the Iteration_n folder where n is the iteration number. 
+
 ## Start to Finish
 ###### Clone this repository locally:
 `cd ~/Directory_where_you_want_to_store_the_code`
@@ -146,7 +149,15 @@ save
 Proceed back to step2 and repeat the step cycle until you have a final resolution of points fine enough. 
 
 ###### Running surface following:
+Surface following follows the same step schema as the iteration steps; however, step1.bash and step5.bash are replaced with f_step1.bash and f_step5.bash respectively. 
+Surface following will require many cycles through the steps; however, once the number of points being generated in each cycle is < 1000, you can rename the most recently saved iteration file to `next_step.pkl` and call `sbatch step_follow.bash`. This will automate the rest of the surface following so that the step files are not needed. This should only be done when it is more efficient to do so i.e. the number of new points is < 1000 as you can allocate a maximum of 1024 cores at once on the Discovery cluster. You'll want to allocate as many cores as you can without receiving the error that too many files are open. For me, this was ~350 cores.
 
 ###### Extracting the data from the cluster:
+Once the surface following has completed, the file with all of the saved data will be labeled `finalized_surface.pkl`. This can be extracted from the cluster with the following schema:
+`scp hartman.da@login.discovery.neu.edu:/scratch/hartman.da/network_simulations_3D/iterations/iteration_5/finalized_surface.pkl ~/Desktop`
 
+Once this file is saved locally, you are ready to plot. 
 ###### Plotting the surface:
+Analyses with 3 or fewer dimensions can be plotted with matplotlib in up to four dimensions where the fourth dimension can be represented by a color gradient along the frequency values that are saved. 
+
+
