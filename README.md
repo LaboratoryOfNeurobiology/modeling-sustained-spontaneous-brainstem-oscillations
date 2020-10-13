@@ -159,5 +159,4 @@ Once the surface following has completed, the file with all of the saved data wi
 Once this file is saved locally, you are ready to plot. 
 ###### Plotting the surface:
 Analyses with 3 or fewer dimensions can be plotted with matplotlib in up to four dimensions where the fourth dimension can be represented by a color gradient along the frequency values that are saved. 
-
-
+Plotting in greater than these dimensions will require the fitting of hyperplanes. Alternatively, you can plot cross-sections of the surface at different fixed coordinate values. 
