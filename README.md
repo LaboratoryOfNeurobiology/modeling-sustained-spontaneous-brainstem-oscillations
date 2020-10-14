@@ -166,4 +166,5 @@ Plotting in greater than these dimensions will require the fitting of hyperplane
 ## Example Surface
 Horizontal Crossection | Vertical Crossection
 :-------------------------:|:-------------------------:
-![](https://github.com/QuantumAlmonds/PacemakerNucleus/files/5374825/osc_points_gKr_3D.pdf)  |  ![](https://github.com/QuantumAlmonds/PacemakerNucleus/files/5374826/osc_points_gKp_3D.pdf)
+![osc_points_gKp_3D](https://user-images.githubusercontent.com/24739064/95929434-fb272e00-0d91-11eb-8f8c-9cb0801ff5b8.png)
+ | ![osc_points_gKr_3D](https://user-images.githubusercontent.com/24739064/95929435-fbbfc480-0d91-11eb-8f6a-45a66033edf5.png)
