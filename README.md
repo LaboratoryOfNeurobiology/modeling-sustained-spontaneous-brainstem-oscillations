@@ -166,5 +166,4 @@ Plotting in greater than these dimensions will require the fitting of hyperplane
 ## Example Surface
 Horizontal Crossection | Vertical Crossection
 :-------------------------:|:-------------------------:
-![osc_points_gKp_3D](https://user-images.githubusercontent.com/24739064/95929434-fb272e00-0d91-11eb-8f8c-9cb0801ff5b8.png)
- | ![osc_points_gKr_3D](https://user-images.githubusercontent.com/24739064/95929435-fbbfc480-0d91-11eb-8f6a-45a66033edf5.png)
+![osc_points_gKp_3D](https://user-images.githubusercontent.com/24739064/95929434-fb272e00-0d91-11eb-8f8c-9cb0801ff5b8.png)| ![osc_points_gKr_3D](https://user-images.githubusercontent.com/24739064/95929435-fbbfc480-0d91-11eb-8f6a-45a66033edf5.png)
