@@ -162,3 +162,7 @@ Once this file is saved locally, you are ready to plot.
 ###### Plotting the surface:
 Analyses with 3 or fewer dimensions can be plotted with matplotlib in up to four dimensions where the fourth dimension can be represented by a color gradient along the frequency values that are saved. 
 Plotting in greater than these dimensions will require the fitting of hyperplanes. Alternatively, you can plot cross-sections of the surface at different fixed coordinate values. 
+
+## Example Surface
+[osc_points_gKr_3D.pdf](https://github.com/QuantumAlmonds/PacemakerNucleus/files/5374825/osc_points_gKr_3D.pdf)
+[osc_points_gKp_3D.pdf](https://github.com/QuantumAlmonds/PacemakerNucleus/files/5374826/osc_points_gKp_3D.pdf)
