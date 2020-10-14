@@ -164,6 +164,6 @@ Analyses with 3 or fewer dimensions can be plotted with matplotlib in up to four
 Plotting in greater than these dimensions will require the fitting of hyperplanes. Alternatively, you can plot cross-sections of the surface at different fixed coordinate values. 
 
 ## Example Surface
-Solarized dark             |  Solarized Ocean
+Horizontal Crossection | Vertical Crossection
 :-------------------------:|:-------------------------:
-[osc_points_gKr_3D.pdf](https://github.com/QuantumAlmonds/PacemakerNucleus/files/5374825/osc_points_gKr_3D.pdf)  |  [osc_points_gKp_3D.pdf](https://github.com/QuantumAlmonds/PacemakerNucleus/files/5374826/osc_points_gKp_3D.pdf)
+![](https://github.com/QuantumAlmonds/PacemakerNucleus/files/5374825/osc_points_gKr_3D.pdf)  |  ![](https://github.com/QuantumAlmonds/PacemakerNucleus/files/5374826/osc_points_gKp_3D.pdf)
