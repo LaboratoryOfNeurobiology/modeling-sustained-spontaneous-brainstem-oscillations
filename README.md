@@ -12,12 +12,14 @@ Follow Discovery's Documentation for getting acquainted with the different types
 ## Note about the file structure
 The data points for each step are generated and then split across multiple files before being simulated, then aggregated, and then shuttled to generate more points. This is to account for the increasinly growing number of points in each iteration step as not all of the points can be simulated in parallel on one node. The checkpoint files called Iteration files are saved in the Iteration_n folder where n is the iteration number. 
 
-## Start to Finish
+## Start to Finish Instructions
 ###### Clone this repository locally:
+In a new shell,
+
 `cd ~/Directory_where_you_want_to_store_the_code`
 `git clone git@github.com:QuantumAlmonds/PacemakerNucleus.git`
 
-Once this command finishes, you will have a copy of the project saved locally to your directory. 
+Once the clone finishes, you will have a copy of the project saved locally to your directory. 
 
 ###### Setup a working directory on the cluster:
 `ssh username@login.discovery.neu.edu`
@@ -149,7 +151,7 @@ save
 Proceed back to step2 and repeat the step cycle until you have a final resolution of points fine enough. 
 
 ###### Running surface following:
-Surface following follows the same step schema as the iteration steps; however, step1.bash and step5.bash are replaced with f_step1.bash and f_step5.bash respectively. 
+Surface following follows the same step schema as the iteration steps; however, the sbatch calls to step1.bash and step5.bash are replaced with f_step1.bash and f_step5.bash respectively. 
 Surface following will require many cycles through the steps; however, once the number of points being generated in each cycle is < 1000, you can rename the most recently saved iteration file to `next_step.pkl` and call `sbatch step_follow.bash`. This will automate the rest of the surface following so that the step files are not needed. This should only be done when it is more efficient to do so i.e. the number of new points is < 1000 as you can allocate a maximum of 1024 cores at once on the Discovery cluster. You'll want to allocate as many cores as you can without receiving the error that too many files are open. For me, this was ~350 cores.
 
 ###### Extracting the data from the cluster:
