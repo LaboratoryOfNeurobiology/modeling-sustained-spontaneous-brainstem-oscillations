@@ -84,8 +84,9 @@ Substitute in the values in this call to mpirun in the bash file:
   
   `mpirun -n {#cores} python sim_network_split.py $SLURM_ARRAY_TASK_ID {iteration#} $SLURM_ARRAY_JOB_ID`
   
-Save and exit with:
-  `(esc) + :wq`
+Save, exit and run with:
+
+`(esc) + :wq`
   
 `sbatch step3.bash`  
 
@@ -95,11 +96,13 @@ until all jobs have completed.
 
 Then retrieve the time signature saved from step_2.bash's output file.
 
-`vi step4.bash`
+replace variables:
 
-replace:
-  `python aggregate_results.py {time_sig_step_2} {iteration} {num_splits}`
-save
+`vi step4.bash`
+ 
+`python aggregate_results.py {time_sig_step_2} {iteration} {num_splits}`
+
+save and run
 
 `sbatch step4.bash`
 
@@ -107,9 +110,13 @@ wait for the job to finish.
 
 `vi step5.bash`
   
-replace:
+replace variables:
+
   `python generate_new_it.py {time_sig} {iteration}`
-save
+
+save and run
+
+`sbatch step5.bash`
 
 ###### Running successive iterations:
 Retrieve time signature and the number of new points generated from previous call to step5.bash.
@@ -117,7 +124,8 @@ Retrieve time signature and the number of new points generated from previous cal
 `vi step2.bash`
 
 re-calculate num_splits with new number of points.
-replace:
+
+replace variables:
 `python Split_iteration.py {time_sig} {iteration} {num_splits}`
 
 `sbatch step2.bash`
@@ -131,7 +139,7 @@ wait for step3 to finish
 
 `vi step4.bash`
 
-replace:
+replace variables:
 `python aggregate_results.py {time_sig_step_2} {iteration} {num_splits}`
 save
 
@@ -142,7 +150,7 @@ Retrieve time signature from previous job.
 
 `vi step5.bash`
 
-replace:
+replace variables:
 `python generate_new_it.py {time_sig} {iteration}`
 save
 
