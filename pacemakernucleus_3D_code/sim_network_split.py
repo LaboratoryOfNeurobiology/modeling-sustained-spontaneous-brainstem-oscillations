@@ -6,8 +6,6 @@ from os.path import isfile, join
 import os
 import sys
 import time
-import tarfile
-import Sim as Sim
 import random as rdm
 import numpy as np
 import pickle as pkl
@@ -15,7 +13,8 @@ import FileTree as ft
 import PN_Modeling as pnm
 import faulthandler
 import difflib
-from statistics import mode, StatisticsError
+import heapq
+import tarfile
 
 def trace(frame, event, arg):
     print("%s, %s:%d" % (
@@ -158,75 +157,65 @@ def network_func(arr):
     h.tstop = T_STOP
     h.run()
 
-    # Simulation analysis
-    time_spikes_pace_somas = []
-    time_spikes_pace_axons = []
-    time_spikes_relay_somas = []
-    time_spikes_relay_axons = []
-    soma_frequencies = []
-    axon_frequencies = []
-    # Determine if oscillating spontaneously
-    last_ps_t = None
-    last_rs_t = None
-    for i, cell in enumerate(all_cells):
-        soma_v, axon_v, t_v = cell.give_spikes()  # time vectors
-        soma_f = len(list(soma_v)) / (T_STOP * 0.001)
-        axon_f = len(list(axon_v)) / (T_STOP * 0.001)
-        if i < 87:
-            time_spikes_pace_somas.append(len(list(soma_v)))
-            time_spikes_pace_axons.append(len(list(axon_v)))
-            if time_spikes_pace_somas[-1] > 0:
-                last_ps_t = list(soma_v)[-1]
-        elif i < 107:
-            time_spikes_relay_somas.append(len(list(soma_v)))
-            time_spikes_relay_axons.append(len(list(axon_v)))
-            if time_spikes_relay_somas[-1] > 0:
-                last_rs_t = list(soma_v)[-1]
-        soma_frequencies.append(soma_f)
-        axon_frequencies.append(axon_f)
+    """
+    Sustained Spontaneous Oscillation (SSO) detection
 
-    # Store raw cellular spike data for this simulation.
-    try:
-        frequencies = [mode(soma_frequencies[0:87]),
-                       mode(axon_frequencies[0:87]),
-                       mode(soma_frequencies[87:]),
-                       mode(axon_frequencies[87:])]
-    except StatisticsError:
-        frequencies = None
+    First half of sim is EQ period
+    Back half is analysis period
 
-    if frequencies is not None \
-            and last_ps_t is not None \
-            and last_rs_t is not None \
-            and (len(set(frequencies)) <=2) \
-            and (np.isclose(frequencies[0], frequencies[3], rtol=0.15)) \
-            and (np.isclose(frequencies[0], frequencies[2], rtol=0.15)) \
-            and (np.isclose(frequencies[0], frequencies[1], rtol=0.15)) \
-            and (frequencies[0] > 40) \
-            and (frequencies[2] > 40) \
-            and ((T_STOP - last_ps_t) < (T_STOP / 3 + 7)) \
-            and ((T_STOP - last_rs_t) < (T_STOP / 3 + 7)):
-        try:
-            freq = mode(soma_frequencies)
-            """pnm.raster(
-                f"/Users/daniel/Desktop/Development/PacemakerNucleus/laptop"
-                f"/sims",
-                LoParameters, all_cells, frequencies)"""
-        except StatisticsError:
-            freq = -1e-15
-    #        print("stats error")
+    Analysis criteria for SSO:
+        - Cells continue firing till end of simulation
+        - Cells fire synchronously
+        - Cells fire more than once
+        - F = 1/T measured from somata
+        - At least one cell fires from each population
+    """
+
+    continue_firing = False
+    has_fired_enough = False
+    fire_synchronously = False
+
+    pace_heap = []
+    relay_heap = []
+    for ident, cell in enumerate(all_cells):
+        soma_v, axon_v, t_v = cell.give_spikes()
+        soma_voltages = list(soma_v)
+        n_spikes = len(soma_voltages)
+        if n_spikes > 1:
+            f_soma = 1 / (soma_voltages[-1] - soma_voltages[-2])*1000
+            if not has_fired_enough:
+                has_fired_enough = True
+        else:
+            f_soma = 0
+        if ident < 87:
+            heapq.heappush(pace_heap, (f_soma, ident, soma_voltages))
+        else:
+            heapq.heappush(relay_heap, (f_soma, ident, soma_voltages))
+    heapq.heapify(pace_heap)
+    heapq.heapify(relay_heap)
+    fastest_pace = pace_heap[-1]
+    fastest_relay = relay_heap[-1]
+
+    # If freqs > 0 then determine if continue firing
+    if fastest_pace[0] > 0 \
+            and fastest_relay[0] > 0:
+        pace_voltages = fastest_pace[2]
+        relay_voltages = fastest_relay[2]
+        if (T_STOP - pace_voltages[-1]) < (T_STOP / 3 + 7) \
+                and (T_STOP - relay_voltages[-1]) < (T_STOP / 3 + 7):
+            continue_firing = True
+
+    if np.isclose(fastest_pace[0], fastest_relay[0], rtol=0.50):
+        fire_synchronously = True
+
+    if continue_firing \
+            and has_fired_enough \
+            and fire_synchronously:
+            freq = fastest_relay[0]
     else:
         freq = -1e-15
-    #print(freq)
-    """pnm.raster(f"/scratch/hartman.da/scratch_3D_resim_code/rasters",
-               LoParameters, all_cells, [p_s_f, p_a_f, r_s_f, r_a_f])
-    pnm.cellular_potentials(f"/scratch/hartman.da/scratch_3D_resim_code"
-                            f"/mem_potentials", LoParameters, all_cells,
-                            [p_s_f, r_s_f])"""
+
     end = time.time()
-    """simulation = Sim.Sim(LoParameters, freq, [], end - start, results_index)
-    with open(f"{pickled_sims_dir}/Sim_{list(LoParameters)}.pkl", "wb") as \
-            sim_file:
-        pkl.dump(simulation, sim_file)"""
     print(end-start)
     return freq, results_index
 
@@ -246,11 +235,11 @@ def tar_sims(last_sim):
 if __name__ == '__main__':
     """
         -Simulate Nodes and update freqs after each sim
-            -Each simulation call pickles a Sim object containing the final 
+            -Each simulation call pickles a Sim object containing the final
             simulation data
                 - returns the frequency and the index
                 - After 500 simulations completed, an aggregate function is
-                 executed which iterates 
+                 executed which iterates
                 through the files in the results directory, combines their data
         """
     h.nrnmpi_init()
@@ -308,5 +297,6 @@ if __name__ == '__main__':
 
     pc.done()
     h.quit()
+
 
 
