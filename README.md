@@ -12,12 +12,14 @@ Follow Discovery's Documentation for getting acquainted with the different types
 ## Note about the file structure
 The data points for each step are generated and then split across multiple files before being simulated, then aggregated, and then shuttled to generate more points. This is to account for the increasinly growing number of points in each iteration step as not all of the points can be simulated in parallel on one node. The checkpoint files called Iteration files are saved in the Iteration_n folder where n is the iteration number. 
 
-## Start to Finish
+## Start to Finish Instructions
 ###### Clone this repository locally:
+In a new shell,
+
 `cd ~/Directory_where_you_want_to_store_the_code`
 `git clone git@github.com:QuantumAlmonds/PacemakerNucleus.git`
 
-Once this command finishes, you will have a copy of the project saved locally to your directory. 
+Once the clone finishes, you will have a copy of the project saved locally to your directory. 
 
 ###### Setup a working directory on the cluster:
 `ssh username@login.discovery.neu.edu`
@@ -82,8 +84,9 @@ Substitute in the values in this call to mpirun in the bash file:
   
   `mpirun -n {#cores} python sim_network_split.py $SLURM_ARRAY_TASK_ID {iteration#} $SLURM_ARRAY_JOB_ID`
   
-Save and exit with:
-  `(esc) + :wq`
+Save, exit and run with:
+
+`(esc) + :wq`
   
 `sbatch step3.bash`  
 
@@ -93,11 +96,13 @@ until all jobs have completed.
 
 Then retrieve the time signature saved from step_2.bash's output file.
 
-`vi step4.bash`
+replace variables:
 
-replace:
-  `python aggregate_results.py {time_sig_step_2} {iteration} {num_splits}`
-save
+`vi step4.bash`
+ 
+`python aggregate_results.py {time_sig_step_2} {iteration} {num_splits}`
+
+save and run
 
 `sbatch step4.bash`
 
@@ -105,9 +110,13 @@ wait for the job to finish.
 
 `vi step5.bash`
   
-replace:
+replace variables:
+
   `python generate_new_it.py {time_sig} {iteration}`
-save
+
+save and run
+
+`sbatch step5.bash`
 
 ###### Running successive iterations:
 Retrieve time signature and the number of new points generated from previous call to step5.bash.
@@ -115,7 +124,8 @@ Retrieve time signature and the number of new points generated from previous cal
 `vi step2.bash`
 
 re-calculate num_splits with new number of points.
-replace:
+
+replace variables:
 `python Split_iteration.py {time_sig} {iteration} {num_splits}`
 
 `sbatch step2.bash`
@@ -129,7 +139,7 @@ wait for step3 to finish
 
 `vi step4.bash`
 
-replace:
+replace variables:
 `python aggregate_results.py {time_sig_step_2} {iteration} {num_splits}`
 save
 
@@ -140,7 +150,7 @@ Retrieve time signature from previous job.
 
 `vi step5.bash`
 
-replace:
+replace variables:
 `python generate_new_it.py {time_sig} {iteration}`
 save
 
@@ -149,7 +159,7 @@ save
 Proceed back to step2 and repeat the step cycle until you have a final resolution of points fine enough. 
 
 ###### Running surface following:
-Surface following follows the same step schema as the iteration steps; however, step1.bash and step5.bash are replaced with f_step1.bash and f_step5.bash respectively. 
+Surface following follows the same step schema as the iteration steps; however, the sbatch calls to step1.bash and step5.bash are replaced with f_step1.bash and f_step5.bash respectively. 
 Surface following will require many cycles through the steps; however, once the number of points being generated in each cycle is < 1000, you can rename the most recently saved iteration file to `next_step.pkl` and call `sbatch step_follow.bash`. This will automate the rest of the surface following so that the step files are not needed. This should only be done when it is more efficient to do so i.e. the number of new points is < 1000 as you can allocate a maximum of 1024 cores at once on the Discovery cluster. You'll want to allocate as many cores as you can without receiving the error that too many files are open. For me, this was ~350 cores.
 
 ###### Extracting the data from the cluster:
@@ -159,5 +169,9 @@ Once the surface following has completed, the file with all of the saved data wi
 Once this file is saved locally, you are ready to plot. 
 ###### Plotting the surface:
 Analyses with 3 or fewer dimensions can be plotted with matplotlib in up to four dimensions where the fourth dimension can be represented by a color gradient along the frequency values that are saved. 
+Plotting in greater than these dimensions will require the fitting of hyperplanes. Alternatively, you can plot cross-sections of the surface at different fixed coordinate values. 
 
-
+## Example Surface
+Vertical Crossection | Horizontal Crossection
+:-------------------------:|:-------------------------:
+![osc_points_gKp_3D](https://user-images.githubusercontent.com/24739064/95929434-fb272e00-0d91-11eb-8f8c-9cb0801ff5b8.png)| ![osc_points_gKr_3D](https://user-images.githubusercontent.com/24739064/95929435-fbbfc480-0d91-11eb-8f6a-45a66033edf5.png)
