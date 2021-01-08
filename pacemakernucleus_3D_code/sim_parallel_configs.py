@@ -1,21 +1,15 @@
 from __future__ import division
 from math import sin, cos, pi, isclose
 from neuron import h
-from os import listdir
-from os.path import isfile, join
-import os
 import sys
 import time
-import tarfile
-import Sim as Sim
 import random as rdm
 import numpy as np
 import pickle as pkl
 import FileTree as ft
 import PN_Modeling as pnm
 import faulthandler
-import difflib
-from statistics import mode, StatisticsError
+import heapq
 
 
 def trace(frame, event, arg):
@@ -154,91 +148,76 @@ def network_func(arr):
             post_syn_cell = all_cells[ident]
             pre_syn_cell.add_synapse(post_syn_cell, conduct_rng)
 
-    # Begin simulation of m odel
+    # Begin simulation of model
     # print(f"Starting simulation {list(LoParameters)} on pc={pc.id()}")
     h.tstop = T_STOP
     h.run()
 
-    # Simulation analysis
-    time_spikes_pace_somas = []
-    time_spikes_pace_axons = []
-    time_spikes_relay_somas = []
-    time_spikes_relay_axons = []
-    soma_frequencies = []
-    axon_frequencies = []
-    # Determine if oscillating spontaneously
-    last_ps_t = None
-    last_rs_t = None
-    for i, cell in enumerate(all_cells):
-        soma_v, axon_v, t_v = cell.give_spikes()  # time vectors
-        soma_f = len(list(soma_v)) / (T_STOP * 0.001)
-        axon_f = len(list(axon_v)) / (T_STOP * 0.001)
-        if i < 87:
-            time_spikes_pace_somas.append(len(list(soma_v)))
-            time_spikes_pace_axons.append(len(list(axon_v)))
-            if time_spikes_pace_somas[-1] > 0:
-                last_ps_t = list(soma_v)[-1]
-        elif i < 107:
-            time_spikes_relay_somas.append(len(list(soma_v)))
-            time_spikes_relay_axons.append(len(list(axon_v)))
-            if time_spikes_relay_somas[-1] > 0:
-                last_rs_t = list(soma_v)[-1]
-        soma_frequencies.append(soma_f)
-        axon_frequencies.append(axon_f)
+    """
+    Sustained Spontaneous Oscillation (SSO) detection
 
-    print(LoParameters)
-    try:
-        frequencies = [mode(soma_frequencies[0:87]),
-                       mode(axon_frequencies[0:87]),
-                       mode(soma_frequencies[87:]),
-                       mode(axon_frequencies[87:])]
-        print(frequencies)
-    except StatisticsError:
-        frequencies = None
-        print("stats error1")
+    First half of sim is EQ period
+    Back half is analysis period
 
-    if frequencies is not None \
-            and last_ps_t is not None \
-            and last_rs_t is not None \
-            and (len(set(frequencies)) <= 2) \
-            and (np.isclose(frequencies[0], frequencies[3], rtol=0.15)) \
-            and (np.isclose(frequencies[0], frequencies[2], rtol=0.15)) \
-            and (np.isclose(frequencies[0], frequencies[1], rtol=0.15)) \
-            and (frequencies[0] > 40) \
-            and (frequencies[2] > 40) \
-            and ((T_STOP - last_ps_t) < (T_STOP / 3 + 7)) \
-            and ((T_STOP - last_rs_t) < (T_STOP / 3 + 7)):
-        try:
-            freq = mode(soma_frequencies)
-            """pnm.raster(
-                f"/Users/daniel/Desktop/Development/PacemakerNucleus/laptop"
-                f"/random_sample_new",
-                LoParameters, all_cells, frequencies)"""
-        except StatisticsError:
-            freq = -1e-15
-            print("stats error2")
+    Analysis criteria for SSO:
+        - Cells continue firing till end of simulation
+        - Cells fire synchronously
+        - Cells fire more than once
+        - F = 1/T measured from somata
+        - At least one cell fires from each population
+    """
+
+    continue_firing = False
+    has_fired_enough = False
+    fire_synchronously = False
+
+    pace_heap = []
+    relay_heap = []
+    for ident, cell in enumerate(all_cells):
+        soma_v, axon_v, t_v = cell.give_spikes()
+        soma_voltages = list(soma_v)
+        n_spikes = len(soma_voltages)
+        if n_spikes > 1:
+            f_soma = 1 / (soma_voltages[-1] - soma_voltages[-2]) * 1000
+            if not has_fired_enough:
+                has_fired_enough = True
+        else:
+            f_soma = 0
+        if ident < 87:
+            heapq.heappush(pace_heap, (f_soma, ident, soma_voltages))
+        else:
+            heapq.heappush(relay_heap, (f_soma, ident, soma_voltages))
+    heapq.heapify(pace_heap)
+    heapq.heapify(relay_heap)
+    fastest_pace = pace_heap[-1]
+    fastest_relay = relay_heap[-1]
+    print(f"fastest pace = {fastest_pace}")
+    print(f"fastest relay = {fastest_relay}")
+
+    # If freqs > 0 then determine if continue firing
+    if fastest_pace[0] > 0 \
+            and fastest_relay[0] > 0:
+        pace_voltages = fastest_pace[2]
+        relay_voltages = fastest_relay[2]
+        if (T_STOP - pace_voltages[-1]) < (T_STOP / 3 + 7) \
+                and (T_STOP - relay_voltages[-1]) < (T_STOP / 3 + 7):
+            continue_firing = True
+
+    if np.isclose(fastest_pace[0], fastest_relay[0], rtol=0.50):
+        fire_synchronously = True
+
+    print(f"continue firing = {continue_firing}")
+    print(f"has fired enough = {has_fired_enough}")
+    print(f"fire synch = {fire_synchronously}")
+
+    if continue_firing \
+            and has_fired_enough \
+            and fire_synchronously:
+        freq = fastest_relay[0]
     else:
         freq = -1e-15
 
-    """pnm.raster(
-        f"/Users/daniel/Desktop/Development/PacemakerNucleus/laptop"
-        f"/random_sample_new",
-        LoParameters, all_cells, frequencies)"""
-    print(freq)
-
-
-    """pnm.cellular_potentials(f"/Users/daniel/Desktop/Development/PacemakerNucleus/laptop"
-                            f"/random_sample",  LoParameters, all_cells, 
-                            [p_s_f, r_s_f])"""
     end = time.time()
-    # simulation = Sim.Sim(LoParameters, freq, all_cells, end - start,
-    # results_index)
-    # with open(f"/Users/daniel/Desktop/Development/PacemakerNucleus/laptop"
-    #          f"/sims/Sim_"
-    #          f"{list(LoParameters)}.pkl", "wb") as \
-    #        sim_file:
-    #    pkl.dump(simulation, sim_file)
-
     print(end - start)
     return freq, results_index
 
@@ -256,19 +235,19 @@ if __name__ == '__main__':
     h.nrnmpi_init()
     pc = h.ParallelContext()
     faulthandler.enable()
+    # sys.settrace(trace)
     h.load_file("nrngui.hoc")
     split_identity = sys.argv[1]
     iteration_identity = 7
     SIM_NAME = "network_resimulations_3D"
     file_tree = ft.FileTree()
     Iteration_file = None
-    file_name = "Island_points_new.pkl"
+    file_name = "Sample_points.pkl"
 
     with open(file_name, 'rb') as f:
         nodes = pkl.load(f)
-    values = nodes.values()
     print(len(nodes))
-    sample = rdm.sample(list(values), 100)
+    sample = rdm.sample(list(nodes), 20)
 
     if int(split_identity) < 128:
         root_identity = 0
@@ -302,8 +281,8 @@ if __name__ == '__main__':
     results = np.c_[nodes, freqs]
     print(results)
     with open(
-            f"/scratch/hartman.da/scratch_3D_code/new_islands_results"
-            f".pkl", "wb") as f:
+            f"/Users/daniel/Desktop/Development/PacemakerNucleus/laptop/results"
+            f"_1000_islands.pkl", "wb") as f:
         pkl.dump(results, f)
         print('file dumped')
 
