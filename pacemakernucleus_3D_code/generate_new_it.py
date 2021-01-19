@@ -2,7 +2,7 @@ import sys
 import pickle as pkl
 from FileTree import FileTree
 from Iteration import Iteration
-from New_iteration import new_iteration
+from New_iteration_test import new_iteration
 from os import listdir
 from os.path import isfile, join
 import time
@@ -28,14 +28,14 @@ def gen_new_it(pre, it):
                                                          nodes_discrete, No, Cu,
                                                          num_div, sol_range,
                                                          it_step)
-    New_It = Iteration(It.sol_range, It.num_div, it_step + 1, nodes_scaled,
+    New_It = Iteration("network_simulations_3D", It.sol_range, It.num_div, it_step + 1, nodes_scaled,
                        nodes_discrete, Cu, No)
     New_It.save()
 
 
 if __name__ == "__main__":
     pre = sys.argv[1]
-    iteration = 0
+    iteration = int(sys.argv[2])
     start = time.time()
     gen_new_it(pre, iteration)
     end = time.time()
